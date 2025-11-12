@@ -1,79 +1,102 @@
 package lzss;
 
-import lzss.LZSS_Compressor;
-
 import java.io.*;
 import java.util.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class LZSS_Compressor {
 
-    //функция сжатия
     public void compress(File inputFile, File outputFile) throws IOException {
+        List<byte[]> dictionary = new ArrayList<>(); // словарь как список байтовых массивов
+        dictionary.add(new byte[0]); // нулевой элемент - пустая строка
 
-        List<String> codePhrases = new ArrayList<>();
+        try (InputStream in = new BufferedInputStream(new FileInputStream(inputFile));
+             DataOutputStream out = new DataOutputStream(new FileOutputStream(outputFile))) {
 
-        try (BufferedReader in = new BufferedReader(new FileReader(inputFile))) {
+            ByteArrayOutputStream currentBuffer = new ByteArrayOutputStream();
+            int nextByte;
 
-            String buffer;
+            while ((nextByte = in.read()) != -1) {
+                currentBuffer.write(nextByte);
+                byte[] currentBytes = currentBuffer.toByteArray();
 
-
-            while ((buffer = in.readLine())!=null) {
-                if (buffer.equals("")){
-                    continue;
-                }
-                String dictionary = ""; // словарь
-
-                //цикл по буферу
-                for (int i = 0; i < buffer.length(); i++){
-                    String currChar = "" + buffer.charAt(i);
-                    String currCode;
-
-                    if (dictionary.isEmpty()){
-                        currCode = "0" + currChar;
-                    }else {
-                        if(dictionary.contains(currChar)){
-                            while(i + 1 < buffer.length() && dictionary.contains(currChar + buffer.charAt(i+1))){
-                                currChar += buffer.charAt(i+1);
-                                ++i;
-                            }
-                            int position = dictionary.length() - dictionary.indexOf(currChar) - 1;
-                            currCode = "1" + position + "_" + currChar.length();
-                        }else {
-                            currCode = "0" + currChar;
-                        }
-
+                // Ищем текущую последовательность в словаре
+                int foundIndex = -1;
+                for (int i = 0; i < dictionary.size(); i++) {
+                    if (Arrays.equals(dictionary.get(i), currentBytes)) {
+                        foundIndex = i;
+                        break;
                     }
-                    dictionary += currChar;
-                    codePhrases.add(currCode);
                 }
 
-            }
-        }catch(IOException ex){
-            System.out.println(ex.getMessage());
-        }
+                if (foundIndex == -1) {
+                    // Не нашли в словаре - добавляем новую запись
+                    byte[] prefixBytes = Arrays.copyOf(currentBytes, currentBytes.length - 1);
+                    byte lastByte = currentBytes[currentBytes.length - 1];
 
-        // Запись в выходной файл
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(outputFile))) {
-            for (String phrase : codePhrases) {
-                if (phrase.startsWith("0")) {
-                    out.writeByte(0);
-                    out.writeByte((byte) phrase.charAt(1)); // символ
-                } else {
-                    int indexDevChar = phrase.indexOf('_');
-                    int position = Integer.parseInt(phrase.substring(1, indexDevChar));
-                    int length = Integer.parseInt(phrase.substring(indexDevChar + 1));
+                    // Ищем индекс префикса в словаре
+                    int prefixIndex = -1;
+                    for (int i = 0; i < dictionary.size(); i++) {
+                        if (Arrays.equals(dictionary.get(i), prefixBytes)) {
+                            prefixIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (prefixIndex == -1) {
+                        // Префикс должен быть в словаре, это ошибка логики
+                        throw new IOException("Prefix not found in dictionary");
+                    }
+
+                    // Записываем флаг 1 (ссылка) + индекс + байт
                     out.writeByte(1);
-                    out.writeInt(position);
-                    out.writeInt(length);
+                    out.writeInt(prefixIndex);
+                    out.writeByte(lastByte);
+
+                    // Добавляем новую последовательность в словарь
+                    dictionary.add(currentBytes);
+                    currentBuffer.reset();
+                }
+                // Если нашли, продолжаем накапливать
+            }
+
+            // Обработка оставшихся данных в буфере
+            if (currentBuffer.size() > 0) {
+                byte[] remainingBytes = currentBuffer.toByteArray();
+                // Для одиночного байта используем флаг 0
+                if (remainingBytes.length == 1) {
+                    out.writeByte(0);
+                    out.writeByte(remainingBytes[0]);
+                } else {
+                    // Ищем префикс в словаре
+                    byte[] prefixBytes = Arrays.copyOf(remainingBytes, remainingBytes.length - 1);
+                    byte lastByte = remainingBytes[remainingBytes.length - 1];
+
+                    int prefixIndex = -1;
+                    for (int i = 0; i < dictionary.size(); i++) {
+                        if (Arrays.equals(dictionary.get(i), prefixBytes)) {
+                            prefixIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (prefixIndex != -1) {
+                        out.writeByte(1);
+                        out.writeInt(prefixIndex);
+                        out.writeByte(lastByte);
+                    } else {
+                        // Если префикс не найден, записываем как одиночные байты
+                        for (byte b : remainingBytes) {
+                            out.writeByte(0);
+                            out.writeByte(b);
+                        }
+                    }
                 }
             }
-        }catch(IOException ex){
+
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
+            throw ex;
         }
-
-
     }
-
 }
+

@@ -1,55 +1,52 @@
 package lzss;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class LZSS_Decompressor {
 
     public void decompress(File inputFile, File outputFile) throws IOException {
-        List<byte[]> decoded = new ArrayList<>(); //расшифрованная строка
+        List<byte[]> dictionary = new ArrayList<>(); // словарь как список байтовых массивов
+        dictionary.add(new byte[0]); // нулевой элемент - пустая строка
 
-        try (BufferedReader in = new BufferedReader(new FileReader(inputFile));
-             OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
-            String buffer;
-            while ((buffer = in.readLine())!=null) {
-                byte[] phrase = {0};
+        try (DataInputStream in = new DataInputStream(new FileInputStream(inputFile));
+             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
 
-                if(buffer.contains("_")){
+            while (in.available() > 0) {
+                byte flag = in.readByte();
+                byte[] phrase;
 
-                   int indexDevChar =  buffer.indexOf('_');
-                   int position = Integer.parseInt(buffer.substring(1,indexDevChar));
-                   int length = Integer.parseInt(buffer.substring(indexDevChar+1));
-                    ByteArrayOutputStream addStr = new ByteArrayOutputStream();
+                if (flag == 0) {
+                    // Одиночный байт
+                    byte symbol = in.readByte();
+                    phrase = new byte[]{symbol};
+                } else if (flag == 1) {
+                    // Ссылка на словарь + байт
+                    int index = in.readInt();
+                    byte symbol = in.readByte();
 
-                    for (int i = 0; i < length; i++) {
-                        int positionInArr = decoded.size() - position - 1 + i;
-                        if (positionInArr >= 0 && positionInArr < decoded.size()) {
-                            addStr.write(decoded.get(positionInArr)[0]);
-                        }
+                    if (index < 0 || index >= dictionary.size()) {
+                        throw new IOException("Invalid dictionary index: " + index);
                     }
 
-                    phrase = addStr.toByteArray();
-                }else{
-                    int index = in.readInt(); //индекс в коде
-                    byte symbol = in.readByte();//символ в коде
-                    phrase = new byte[] { symbol };
+                    // Получаем байты из словаря по индексу и добавляем новый символ
+                    byte[] prefix = dictionary.get(index);
+                    phrase = new byte[prefix.length + 1];
+                    System.arraycopy(prefix, 0, phrase, 0, prefix.length);
+                    phrase[phrase.length - 1] = symbol;
+                } else {
+                    throw new IOException("Неверный флаг: " + flag);
                 }
 
-                // добавляем каждый байт отдельно
-                for (byte b : phrase) {
-                    decoded.add(new byte[]{b});
-                }
-
+                // Добавляем в словарь
+                dictionary.add(phrase);
+                // Записываем в выходной поток
+                out.write(phrase);
             }
 
-            for (byte[] arr : decoded) {
-                out.write(arr);
-            }
-
-        }catch(IOException ex){
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
+            throw ex;
         }
     }
 }
