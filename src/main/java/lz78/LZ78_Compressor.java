@@ -36,6 +36,13 @@ public class LZ78_Compressor {
                     current.setLength(0);
                 }
             }
+            if (current.length() > 0) {
+                String currentStr = current.toString();
+                short prefixIndex = (current.length() == 1)? 0 : dictionaryPosPhrase.get(currentStr.substring(0, current.length() - 1));
+                byte lastByte = (byte) currentStr.charAt(currentStr.length() - 1);
+                phrases.add(new Phrase(prefixIndex, lastByte));
+            }
+
         }catch(IOException ex){
             System.out.println(ex.getMessage());
         }
