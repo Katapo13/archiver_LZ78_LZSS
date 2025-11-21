@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<VBox alignment="TOP_CENTER" spacing="20.0" styleClass="root" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.ArciverController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <Text styleClass="header-title" text="Архиватор файлов" />
+    <Text styleClass="header-subtitle" text="Архивация и разархивация с алгоритмами LZ78 и LZSS" />
+
+    <GridPane hgap="20" vgap="20" VBox.vgrow="ALWAYS">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+        <children>
+            <VBox styleClass="card" spacing="10" GridPane.columnIndex="0">
+                <Text text="Выбор файлов" styleClass="card-title"/>
+                <StackPane fx:id="fileDropArea" styleClass="drop-area" onDragOver="#handleDragOver" onDragDropped="#handleFileDrop">
+                    <VBox alignment="CENTER" spacing="10">
+                        <Text text="Нажмите для выбора файлов" />
+                        <Text text="или перетащите файлы сюда" />
+                    </VBox>
+                </StackPane>
+                <HBox fx:id="selectedFileBox" spacing="10" alignment="CENTER_LEFT" visible="false">
+                    <Label fx:id="selectedFileLabel" id="selectedFileLabel" text="" />
+                    <Button text="✕" onAction="#clearSelectedFile" styleClass="close-button"/>
+                </HBox>
+                <HBox fx:id="resultFileBox" spacing="10" alignment="CENTER_LEFT" visible="false">
+                    <Label fx:id="resultFileLabel" id="resultFileLabel" text="" />
+                    <Button text="✕" onAction="#clearResultFile" styleClass="close-button"/>
+                </HBox>
+
+                <Button fx:id="saveButton" text="Сохранить" onAction="#saveFile" visible="false" styleClass="action-button"/>
+            </VBox>
+
+            <VBox styleClass="card" spacing="15" GridPane.columnIndex="1">
+                <Text text="Настройки архивации" styleClass="card-title"/>
+                    <VBox spacing="10">
+                        <RadioButton fx:id="lz78RadioButton" text="LZ78" selected="true"/>
+                        <RadioButton fx:id="lzssRadioButton" text="LZSS"/>
+                    </VBox>
+
+                <Button text="Архивировать" onAction="#compressFile" styleClass="action-button"/>
+                <Button text="Разархивировать" onAction="#decompressFile" styleClass="action-button"/>
+            </VBox>
+        </children>
+    </GridPane>
+    <ProgressBar fx:id="progressBar" prefWidth="600" progress="0.0" visible="false"/>
+</VBox>

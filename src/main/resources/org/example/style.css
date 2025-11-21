@@ -1,0 +1,107 @@
+.root {
+    -fx-background-color: #2c2f33;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.header-title {
+    -fx-font-size: 28px;
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
+
+.header-subtitle {
+    -fx-font-size: 14px;
+    -fx-fill: #99aab5;
+}
+
+.card {
+    -fx-background-color: #36393f;
+    -fx-background-radius: 8;
+    -fx-padding: 20;
+}
+
+.card-title {
+    -fx-font-size: 18px;
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
+
+.drop-area {
+    -fx-border-color: #4f545c;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-border-style: dashed;
+    -fx-padding: 40 20;
+    -fx-background-color: #40444b;
+}
+
+.action-button {
+    -fx-background-color: #7289da;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.action-button:hover {
+    -fx-background-color: #677bc4;
+}
+
+.radio-button {
+    -fx-text-fill: #99aab5;
+}
+
+.radio-button .radio {
+    -fx-border-width: 2px;
+    -fx-border-color: #7289da;
+    -fx-background-color: #36393f;
+    -fx-background-radius: 1em;
+    -fx-border-radius: 1em;
+    -fx-padding: 3px;
+}
+
+
+.radio-button:selected .radio {
+    -fx-border-color: #7289da;
+    -fx-background-color: #36393f;
+}
+
+.radio-button .dot {
+    -fx-background-color: transparent;
+    -fx-background-radius: 1em;
+    -fx-padding: 4px;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: #7289da;
+}
+
+
+.progress-bar .bar {
+    -fx-background-color: #7289da;
+}
+
+.progress-bar .track {
+    -fx-background-color: #40444b;
+}
+
+#selectedFileLabel, #resultFileLabel {
+    -fx-text-fill: #99aab5;         /* светло-серый текст */
+    -fx-font-size: 13px;            /* немного меньше основного текста */
+    -fx-padding: 5 0 0 0;           /* отступ сверху */
+    -fx-wrap-text: true;            /* перенос текста при необходимости */
+}
+
+.close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #99aab5;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 5 0 5;
+    -fx-cursor: hand;
+}
+
+.close-button:hover {
+    -fx-text-fill: #ff5555;
+}
