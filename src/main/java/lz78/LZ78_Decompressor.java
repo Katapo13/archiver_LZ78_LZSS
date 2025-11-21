@@ -2,38 +2,27 @@ package lz78;
 
 import java.io.*;
 import java.util.*;
-import java.nio.charset.StandardCharsets;
 
 public class LZ78_Decompressor {
 
     public void decompress(File inputFile, File outputFile) throws IOException {
-        List<byte[]> decoded = new ArrayList<>(); //расшифрованная строка
+        List<byte[]> dictionary = new ArrayList<>();
+        dictionary.add(new byte[0]); // индекс 0 — пустая строка
 
         try (DataInputStream in = new DataInputStream(new FileInputStream(inputFile));
              OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
 
             while (in.available() > 0) {
-                int index = in.readInt(); //индекс в коде
-                byte symbol = in.readByte();//символ в коде
+                int index = in.readInt();
+                byte symbol = in.readByte();
 
-                byte[] phrase;
-                if (index == 0) {
-                    phrase = new byte[] { symbol };
-                } else {
-                    byte[] prefix = decoded.get(index - 1);
-                    phrase = new byte[prefix.length + 1];
-                    System.arraycopy(prefix, 0, phrase, 0, prefix.length);
-                    phrase[prefix.length] = symbol;
-                }
+                byte[] prefix = dictionary.get(index);
+                byte[] phrase = Arrays.copyOf(prefix, prefix.length + 1);
+                phrase[phrase.length - 1] = symbol;
 
-                decoded.add(phrase);
+                dictionary.add(phrase);
+                out.write(phrase);
             }
-            for (byte[] arr : decoded) {
-                out.write(arr);
-            }
-        }catch(IOException ex){
-            System.out.println(ex.getMessage());
         }
     }
-
 }
