@@ -6,19 +6,19 @@ import java.util.*;
 public class LZ78_Compressor {
 
     private static class Phrase {
-        int index;
+        short index;
         byte symbol;
 
-        Phrase(int index, byte symbol) {
+        Phrase(short index, byte symbol) {
             this.index = index;
             this.symbol = symbol;
         }
     }
 
     public void compress(File inputFile, File outputFile) throws IOException {
-        Map<List<Byte>, Integer> dictionary = new HashMap<>();
+        Map<List<Byte>, Short> dictionary = new HashMap<>();
         List<Phrase> phrases = new ArrayList<>();
-        int dictIndex = 1;
+        short dictIndex = 1;
 
         try (InputStream in = new BufferedInputStream(new FileInputStream(inputFile))) {
             ByteArrayOutputStream current = new ByteArrayOutputStream();
@@ -31,7 +31,7 @@ public class LZ78_Compressor {
 
                 if (!dictionary.containsKey(currentList)) {
                     List<Byte> prefixList = toByteList(Arrays.copyOf(currentBytes, currentBytes.length - 1));
-                    int prefixIndex = (prefixList.isEmpty()) ? 0 : dictionary.getOrDefault(prefixList, 0);
+                    short prefixIndex = (prefixList.isEmpty()) ? 0 : (short)dictionary.getOrDefault(prefixList, (short)0);
 
                     phrases.add(new Phrase(prefixIndex, (byte) nextByte));
                     dictionary.put(currentList, dictIndex++);
@@ -43,7 +43,7 @@ public class LZ78_Compressor {
             if (current.size() > 0) {
                 byte[] remaining = current.toByteArray();
                 List<Byte> prefixList = toByteList(Arrays.copyOf(remaining, remaining.length - 1));
-                int prefixIndex = (prefixList.isEmpty()) ? 0 : dictionary.getOrDefault(prefixList, 0);
+                short prefixIndex = (prefixList.isEmpty()) ? 0 : dictionary.getOrDefault(prefixList, (short)0);
                 byte lastByte = remaining[remaining.length - 1];
                 phrases.add(new Phrase(prefixIndex, lastByte));
             }
