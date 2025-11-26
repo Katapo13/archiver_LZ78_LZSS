@@ -36,7 +36,7 @@
                 </HBox>
                 <HBox fx:id="resultFileBox" spacing="10" alignment="CENTER_LEFT" visible="false">
                     <Label fx:id="resultFileLabel" id="resultFileLabel" text="" />
-                    <Button text="✕" onAction="#clearResultFile" styleClass="close-button"/>
+                    <Button fx:id="resultFileClose" text="✕" visible="false" onAction="#clearResultFile" styleClass="close-button"/>
                 </HBox>
 
                 <Button fx:id="saveButton" text="Сохранить" onAction="#saveFile" visible="false" styleClass="action-button"/>
