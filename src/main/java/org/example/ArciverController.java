@@ -18,6 +18,7 @@ import java.io.IOException;
 
 public class ArciverController {
 
+    public Button resultFileClose;
     @FXML
     private StackPane fileDropArea;
     @FXML
@@ -98,25 +99,26 @@ public class ArciverController {
         }
         String algo = lz78RadioButton.isSelected() ? "LZ78" : "LZSS";
         File outputFile = new File(selectedFile.getParent(), selectedFile.getName() + "." + algo.toLowerCase());
-//        FileChooser fileChooser = new FileChooser();
-//        fileChooser.setInitialFileName(selectedFile.getName() + "." + algo.toLowerCase());
-//        if (fileChooser.showSaveDialog(null) == null) {// пользователь отменил
-//            resultFile = outputFile;
-//        }else{
-//            resultFile = fileChooser.showSaveDialog(null);
-//        }
         resultFile = outputFile;
 
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-//                updateProgress(0, 1);
-                  if (algo.equals("LZ78")) {
+                updateProgress(0, 10);
+
+                // имитация работы — 10 шагов по 300 мс
+                for (int i = 1; i <= 10; i++) {
+                    Thread.sleep(300); // пауза
+                    updateProgress(i, 10); // обновляем прогресс
+                }
+
+                // выполняем алгоритм
+                if (algo.equals("LZ78")) {
                     new LZ78_Compressor().compress(selectedFile, outputFile);
-                  } else {
+                } else {
                     new LZSS_Compressor().compress(selectedFile, outputFile);
-                  }
-//                updateProgress(1, 1);
+                }
+
                 return null;
             }
         };
@@ -139,16 +141,26 @@ public class ArciverController {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                updateProgress(0, 1);
-                if (algo.equals("LZ78")) {
-                    new LZ78_Decompressor().decompress(selectedFile, outputFile);
-                } else {
-                    new LZSS_Decompressor().decompress(selectedFile, outputFile);
-                }
-                updateProgress(1, 1);
-                return null;
+                    updateProgress(0, 10);
+
+                    // имитация работы — 10 шагов по 300 мс
+                    for (int i = 1; i <= 10; i++) {
+                        Thread.sleep(300); // пауза
+                        updateProgress(i, 10); // обновляем прогресс
+                    }
+
+                    if (algo.equals("LZ78")) {
+                        new LZ78_Decompressor().decompress(selectedFile, outputFile);
+                    } else {
+                        new LZSS_Decompressor().decompress(selectedFile, outputFile);
+                    }
+
+                    // updateProgress(1, 1);
+                    return null;
+
             }
         };
+
         runTask(task);
     }
 
@@ -157,16 +169,22 @@ public class ArciverController {
         progressBar.setVisible(true);
 
         task.setOnSucceeded(e -> {
+            // финал
+            progressBar.progressProperty().unbind();
+            progressBar.setProgress(1.0);
             progressBar.setVisible(false);
             resultFileLabel.setText("Результат: " + resultFile.getName());
+            resultFileClose.setVisible(true);
             saveButton.setVisible(true);
         });
 
         task.setOnFailed(e -> {
+            progressBar.progressProperty().unbind();
+            progressBar.setVisible(false);
             resultFileBox.setVisible(false);
+            resultFileClose.setVisible(false);
             resultFileLabel.setText("");
             resultFile = null;
-            progressBar.setVisible(false);
             showAlert("Ошибка", "Произошла ошибка во время операции.");
             e.getSource().getException().printStackTrace();
         });
@@ -213,6 +231,7 @@ public class ArciverController {
         resultFile = null;
         resultFileLabel.setText("");
         resultFileBox.setVisible(false);
+        resultFileClose.setVisible(false);
         saveButton.setVisible(false);
     }
 
