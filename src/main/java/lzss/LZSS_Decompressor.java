@@ -1,16 +1,18 @@
 package lzss;
-
+import basic.Decompressor;
 import java.io.*;
 import java.util.*;
 
-public class LZSS_Decompressor {
+public class LZSS_Decompressor extends Decompressor{
 
-    public void decompress(File inputFile, File outputFile) throws IOException {
+    @Override
+    public List<byte[]> decompress(File inputFile) throws IOException {
         List<byte[]> dictionary = new ArrayList<>(); // словарь как список байтовых массивов
+        List<byte[]> result = new ArrayList<>();
+
         dictionary.add(new byte[0]); // нулевой элемент - пустая строка
 
-        try (DataInputStream in = new DataInputStream(new FileInputStream(inputFile));
-             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream(inputFile))) {
 
             while (in.available() > 0) {
                 byte flag = in.readByte();
@@ -41,12 +43,13 @@ public class LZSS_Decompressor {
                 // Добавляем в словарь
                 dictionary.add(phrase);
                 // Записываем в выходной поток
-                out.write(phrase);
+                result.add(phrase);
             }
 
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
             throw ex;
         }
+        return result;
     }
 }

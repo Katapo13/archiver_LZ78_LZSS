@@ -1,16 +1,17 @@
 package lz78;
-
+import basic.Decompressor;
 import java.io.*;
 import java.util.*;
 
-public class LZ78_Decompressor {
+public class LZ78_Decompressor extends Decompressor {
 
-    public void decompress(File inputFile, File outputFile) throws IOException {
+    @Override
+    public List<byte[]> decompress(File inputFile) throws IOException {
         List<byte[]> dictionary = new ArrayList<>();
         dictionary.add(new byte[0]); // индекс 0 — пустая строка
+        List<byte[]> result = new ArrayList<>();
 
-        try (DataInputStream in = new DataInputStream(new FileInputStream(inputFile));
-             OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream(inputFile))) {
 
             while (in.available() > 0) {
                 int index = in.readInt();
@@ -21,8 +22,9 @@ public class LZ78_Decompressor {
                 phrase[phrase.length - 1] = symbol;
 
                 dictionary.add(phrase);
-                out.write(phrase);
+                result.add(phrase);
             }
         }
+        return result;
     }
 }

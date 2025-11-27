@@ -1,5 +1,6 @@
 package org.example;
 
+import Writing.FileIOHelper;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -12,9 +13,12 @@ import lz78.LZ78_Compressor;
 import lz78.LZ78_Decompressor;
 import lzss.LZSS_Compressor;
 import lzss.LZSS_Decompressor;
+import basic.Compressor;
+import basic.Decompressor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class ArciverController {
 
@@ -41,6 +45,7 @@ public class ArciverController {
 
     private File selectedFile;
     private File resultFile;
+    private List<byte[]> resultData; // хранит байты после компрессии/декомпрессии
 
     @FXML
     private void initialize() {
@@ -93,6 +98,7 @@ public class ArciverController {
 
     @FXML
     private void compressFile() {
+
         if (selectedFile == null) {
             showAlert("Файл не выбран", "Пожалуйста, выберите файл для архивации.");
             return;
@@ -112,11 +118,14 @@ public class ArciverController {
                     updateProgress(i, 10); // обновляем прогресс
                 }
 
+                Compressor compressor;
                 // выполняем алгоритм
                 if (algo.equals("LZ78")) {
-                    new LZ78_Compressor().compress(selectedFile, outputFile);
+                    compressor = new LZ78_Compressor();
+                    resultData = compressor.compress(selectedFile);
                 } else {
-                    new LZSS_Compressor().compress(selectedFile, outputFile);
+                    compressor = new LZSS_Compressor();
+                    resultData = compressor.compress(selectedFile);
                 }
 
                 return null;
@@ -141,22 +150,24 @@ public class ArciverController {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                    updateProgress(0, 10);
+                updateProgress(0, 10);
 
-                    // имитация работы — 10 шагов по 300 мс
-                    for (int i = 1; i <= 10; i++) {
-                        Thread.sleep(300); // пауза
-                        updateProgress(i, 10); // обновляем прогресс
-                    }
+                // имитация работы — 10 шагов по 300 мс
+                for (int i = 1; i <= 10; i++) {
+                    Thread.sleep(300); // пауза
+                    updateProgress(i, 10); // обновляем прогресс
+                }
+                Decompressor decompressor;
+                if (algo.equals("LZ78")) {
+                    decompressor = new LZ78_Decompressor();
+                    resultData = decompressor.decompress(selectedFile);
 
-                    if (algo.equals("LZ78")) {
-                        new LZ78_Decompressor().decompress(selectedFile, outputFile);
-                    } else {
-                        new LZSS_Decompressor().decompress(selectedFile, outputFile);
-                    }
+                } else {
+                    decompressor = new LZSS_Decompressor();
+                    resultData = decompressor.decompress(selectedFile);
+                }
 
-                    // updateProgress(1, 1);
-                    return null;
+                return null;
 
             }
         };
@@ -195,13 +206,13 @@ public class ArciverController {
 
     @FXML
     private void saveFile() {
-        if (resultFile != null && resultFile.exists()) {
+        if (resultData!= null && !resultData.isEmpty()) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setInitialFileName(resultFile.getName());
             File dest = fileChooser.showSaveDialog(null);
             if (dest != null) {
                 try {
-                    java.nio.file.Files.copy(resultFile.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    FileIOHelper.writeToFile(resultData,dest);
                 } catch (IOException e) {
                     showAlert("Ошибка сохранения", "Не удалось сохранить файл.");
                     e.printStackTrace();
